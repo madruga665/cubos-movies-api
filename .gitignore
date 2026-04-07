@@ -1,0 +1,6 @@
+.agents
+skills-lock.json
+/src/generated/
+.env
+/node_modules
+.idea
