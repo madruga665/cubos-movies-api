@@ -17,7 +17,7 @@ RUN npm install
 COPY . .
 
 # Gera o cliente Prisma
-RUN npx prisma generate --schema=prisma/schema.prisma
+RUN DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public" npx prisma generate --schema=prisma/schema.prisma
 
 # Porta
 ENV PORT=5000
