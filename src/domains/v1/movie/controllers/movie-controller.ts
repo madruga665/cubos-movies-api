@@ -70,26 +70,42 @@ export class MovieController {
       // 2. Fallback: Verificação manual no Banco de Dados se o Better Auth falhar
       if (!session || !session.user) {
         const authHeader = req.headers.authorization;
-        const token = authHeader?.startsWith('Bearer ') ? (authHeader as string).substring(7) : null;
+        let token = authHeader?.startsWith('Bearer ') ? (authHeader as string).substring(7) : null;
 
         if (token) {
-          logger.info('Tentando verificação manual do token no banco de dados', { 
-            tokenSnippet: token.substring(0, 10) + '...' 
-          });
-          
-          const dbSession = await prisma.session.findUnique({
-            where: { token },
-            include: { user: true }
+          token = decodeURIComponent(token);
+
+          logger.info('Tentando verificação manual do token decodificado', {
+            tokenSnippet: token.substring(0, 10) + '...',
           });
 
-          if (dbSession && dbSession.expiresAt > new Date()) {
-            logger.info('Sessão encontrada manualmente no banco e válida', { userId: dbSession.userId });
-            session = {
-              user: dbSession.user,
-              session: dbSession
-            } as any;
+          const dbSession = await prisma.session.findUnique({
+            where: { token },
+            include: { user: true },
+          });
+
+          if (dbSession) {
+            const now = new Date();
+            const isExpired = dbSession.expiresAt < now;
+
+            logger.info('Dados da sessão no banco:', {
+              userId: dbSession.userId,
+              expiresAt: dbSession.expiresAt.toISOString(),
+              now: now.toISOString(),
+              isExpired,
+            });
+
+            if (!isExpired) {
+              logger.info('Sessão válida encontrada manualmente!');
+              session = {
+                user: dbSession.user,
+                session: dbSession,
+              };
+            } else {
+              logger.warn('Sessão encontrada, mas já expirou');
+            }
           } else {
-            logger.warn('Token enviado não foi encontrado no banco ou está expirado');
+            logger.warn('Token decodificado não existe na tabela de sessões do banco');
           }
         }
       }
