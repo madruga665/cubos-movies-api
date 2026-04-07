@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "ignoreDeprecations": "6.0",
+    "moduleResolution": "Node",
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "noImplicitAny": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
