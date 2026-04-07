@@ -75,12 +75,16 @@ export class MovieController {
         if (token) {
           token = decodeURIComponent(token);
 
+          // O Better Auth envia o token como "id.assinatura". No banco, apenas o "id" é salvo.
+          const sessionId = token.split('.')[0];
+
           logger.info('Tentando verificação manual do token decodificado', {
+            sessionId,
             tokenSnippet: token.substring(0, 10) + '...',
           });
 
           const dbSession = await prisma.session.findUnique({
-            where: { token },
+            where: { token: sessionId },
             include: { user: true },
           });
 
