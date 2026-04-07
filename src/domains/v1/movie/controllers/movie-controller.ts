@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
-import { auth } from '../../../../lib/auth';
-import { prisma } from '../../../../lib/prisma';
 import logger from '../../../../lib/logger';
-import { fromNodeHeaders } from 'better-auth/node';
 
 export class MovieController {
   constructor(private movieService: MovieService) {}
@@ -58,71 +55,12 @@ export class MovieController {
    */
   listUserMovies = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('Iniciando MovieController.listUserMovies', {
-      headers: req.headers,
+      userId: req.user?.id,
+      query: req.query,
     });
 
     try {
-      // 1. Tenta autenticação padrão do Better Auth
-      let session = await auth.api.getSession({
-        headers: fromNodeHeaders(req.headers),
-      });
-
-      // 2. Fallback: Verificação manual no Banco de Dados se o Better Auth falhar
-      if (!session || !session.user) {
-        const authHeader = req.headers.authorization;
-        let token = authHeader?.startsWith('Bearer ') ? (authHeader as string).substring(7) : null;
-
-        if (token) {
-          token = decodeURIComponent(token);
-
-          // O Better Auth envia o token como "id.assinatura". No banco, apenas o "id" é salvo.
-          const sessionId = token.split('.')[0];
-
-          logger.info('Tentando verificação manual do token decodificado', {
-            sessionId,
-            tokenSnippet: token.substring(0, 10) + '...',
-          });
-
-          const dbSession = await prisma.session.findUnique({
-            where: { token: sessionId },
-            include: { user: true },
-          });
-
-          if (dbSession) {
-            const now = new Date();
-            const isExpired = dbSession.expiresAt < now;
-
-            logger.info('Dados da sessão no banco:', {
-              userId: dbSession.userId,
-              expiresAt: dbSession.expiresAt.toISOString(),
-              now: now.toISOString(),
-              isExpired,
-            });
-
-            if (!isExpired) {
-              logger.info('Sessão válida encontrada manualmente!');
-              session = {
-                user: dbSession.user,
-                session: dbSession,
-              };
-            } else {
-              logger.warn('Sessão encontrada, mas já expirou');
-            }
-          } else {
-            logger.warn('Token decodificado não existe na tabela de sessões do banco');
-          }
-        }
-      }
-
-      if (!session || !session.user) {
-        logger.warn('Falha na autenticação do usuário', {
-          headers: req.headers,
-        });
-        res.status(401).json({ message: 'Não autorizado. Sessão inválida ou expirada.' });
-        return;
-      }
-
-      const userId = session.user.id;
+      const userId = req.user.id;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 

@@ -21,7 +21,7 @@ describe('MovieService', () => {
       { id: '1', title: 'Movie 1', userId: 'user1' },
       { id: '2', title: 'Movie 2', userId: 'user1' },
     ];
-    
+
     mockRepository.findByUserId.mockResolvedValue({
       movies: mockMovies as any,
       total: 2,

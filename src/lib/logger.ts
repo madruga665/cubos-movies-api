@@ -4,7 +4,7 @@ import LokiTransport from 'winston-loki';
 const logger = winston.createLogger({
   transports: [
     new LokiTransport({
-      // URL do seu serviço Loki (ex: Docker local ou Grafana Cloud)
+      basicAuth: `${process.env.LOKI_USER_ID}:${process.env.LOKI_TOKEN}`,
       host: process.env.LOKI_BASE_URL || 'http://localhost:3100',
       labels: { app: 'cubos-movies-api' }, // Rótulos para filtrar no Grafana
       json: true,
