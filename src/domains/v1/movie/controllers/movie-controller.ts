@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
 import { auth } from '../../../../lib/auth';
+import { prisma } from '../../../../lib/prisma';
 import logger from '../../../../lib/logger';
 import { fromNodeHeaders } from 'better-auth/node';
 
@@ -58,13 +59,40 @@ export class MovieController {
   listUserMovies = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('Iniciando MovieController.listUserMovies', {
       headers: req.headers,
-      query: req.query,
     });
 
     try {
-      const session = await auth.api.getSession({
+      // 1. Tenta autenticação padrão do Better Auth
+      let session = await auth.api.getSession({
         headers: fromNodeHeaders(req.headers),
       });
+
+      // 2. Fallback: Verificação manual no Banco de Dados se o Better Auth falhar
+      if (!session || !session.user) {
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? (authHeader as string).substring(7) : null;
+
+        if (token) {
+          logger.info('Tentando verificação manual do token no banco de dados', { 
+            tokenSnippet: token.substring(0, 10) + '...' 
+          });
+          
+          const dbSession = await prisma.session.findUnique({
+            where: { token },
+            include: { user: true }
+          });
+
+          if (dbSession && dbSession.expiresAt > new Date()) {
+            logger.info('Sessão encontrada manualmente no banco e válida', { userId: dbSession.userId });
+            session = {
+              user: dbSession.user,
+              session: dbSession
+            } as any;
+          } else {
+            logger.warn('Token enviado não foi encontrado no banco ou está expirado');
+          }
+        }
+      }
 
       if (!session || !session.user) {
         logger.warn('Falha na autenticação do usuário', {
