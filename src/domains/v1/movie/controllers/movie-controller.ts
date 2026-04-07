@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
 import { auth } from '../../../../lib/auth';
 import logger from '../../../../lib/logger';
+import { fromNodeHeaders } from 'better-auth/node';
 
 export class MovieController {
   constructor(private movieService: MovieService) {}
@@ -62,7 +63,7 @@ export class MovieController {
 
     try {
       const session = await auth.api.getSession({
-        headers: new Headers(req.headers as Record<string, string>),
+        headers: fromNodeHeaders(req.headers),
       });
 
       if (!session || !session.user) {
