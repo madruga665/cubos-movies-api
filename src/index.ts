@@ -32,7 +32,7 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'API rodando com Express e TS' });
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

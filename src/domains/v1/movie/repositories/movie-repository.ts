@@ -1,20 +1,23 @@
-import { prisma } from '../../../../lib/prisma';
+import { prisma as defaultPrisma } from '../../../../lib/prisma';
 import logger from '../../../../lib/logger';
+import { PrismaClient } from '../../../../generated/prisma';
 
 export class MovieRepository {
+  constructor(private prisma: PrismaClient = defaultPrisma) {}
+
   async findByUserId(userId: string, skip: number = 0, take: number = 10) {
     const startTime = Date.now();
     logger.info('Iniciando consulta ao Prisma para findByUserId', { userId, skip, take });
 
     try {
       const [movies, total] = await Promise.all([
-        prisma.movie.findMany({
+        this.prisma.movie.findMany({
           where: { userId },
           skip,
           take,
           orderBy: { createdAt: 'desc' },
         }),
-        prisma.movie.count({
+        this.prisma.movie.count({
           where: { userId },
         }),
       ]);

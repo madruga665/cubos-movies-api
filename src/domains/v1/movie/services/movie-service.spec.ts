@@ -10,11 +10,10 @@ describe('MovieService', () => {
   let mockRepository: jest.Mocked<MovieRepository>;
 
   beforeEach(() => {
-    movieService = new MovieService();
-    // @ts-expect-error - acessando private para mock
-    movieService.repository.findByUserId = jest.fn();
-    // @ts-expect-error - acessando private para mock
-    mockRepository = movieService.repository as jest.Mocked<MovieRepository>;
+    // Cria o mock do repositório e injeta via construtor (DI)
+    mockRepository = new MovieRepository() as jest.Mocked<MovieRepository>;
+    mockRepository.findByUserId = jest.fn();
+    movieService = new MovieService(mockRepository);
   });
 
   it('deve listar filmes de um usuário com sucesso', async () => {

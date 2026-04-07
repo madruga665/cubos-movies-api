@@ -2,11 +2,7 @@ import { MovieRepository } from '../repositories/movie-repository';
 import logger from '../../../../lib/logger';
 
 export class MovieService {
-  private repository: MovieRepository;
-
-  constructor() {
-    this.repository = new MovieRepository();
-  }
+  constructor(private repository: MovieRepository = new MovieRepository()) {}
 
   async listUserMovies(userId: string, page: number = 1, limit: number = 10) {
     logger.info('Iniciando MovieService.listUserMovies', { userId, page, limit });
