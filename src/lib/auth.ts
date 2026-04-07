@@ -11,4 +11,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === 'production',
+  },
 });

@@ -9,6 +9,8 @@ import { swaggerSpec } from './swagger';
 
 export const app = express();
 
+app.set('trust proxy', 1);
+
 // Patch para serializar BigInt em JSON
 (BigInt.prototype as any).toJSON = function () {
   return Number(this);
