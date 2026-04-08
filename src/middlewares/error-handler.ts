@@ -21,19 +21,16 @@ export const errorHandler = (
 
   // Tratamento de erros operacionais previstos (AppError)
   if (error instanceof AppError) {
-    logger.warn('Erro operacional capturado', {
-      message: error.message,
+    logger.warn(error.message, {
       statusCode: error.statusCode,
+      stack: error.stack,
     });
     res.status(error.statusCode).json({ message: error.message });
     return;
   }
 
   // Tratamento de erros imprevistos (500)
-  logger.error('Erro crítico não tratado', {
-    message: error.message,
-    stack: error.stack,
-  });
+  logger.error('Erro crítico não tratado', error);
 
   res.status(500).json({ message: 'Erro interno do servidor' });
 };
