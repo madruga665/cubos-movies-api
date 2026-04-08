@@ -108,6 +108,27 @@ npm run lint
 
 ---
 
+## 🏗️ Padrões Arquiteturais e Boas Práticas
+
+### Tratamento de Erros Centralizado
+O projeto utiliza um **Middleware de Erro Centralizado** (`src/middlewares/error-handler.ts`) para garantir que todas as respostas de erro da API sejam padronizadas e seguras.
+
+- **Erros Previstos (Operacionais):** Devem ser lançados utilizando a classe personalizada `AppError`.
+  ```typescript
+  import { AppError } from '../../../lib/errors';
+  
+  if (!movie) {
+    throw new AppError('Filme não encontrado.', 404);
+  }
+  ```
+- **Erros de Validação:** Erros de schema do **Zod** são capturados automaticamente e retornados com o status `400` e a lista detalhada de campos inválidos.
+- **Erros Imprevistos (Bugs):** São capturados pelo middleware, logados internamente para debug, e retornam uma mensagem genérica de `500` para o cliente, protegendo detalhes sensíveis da infraestrutura.
+
+### Injeção de Dependência
+As camadas de **Controller**, **Service** e **Repository** utilizam Injeção de Dependência via construtores, facilitando a criação de mocks para testes unitários isolados.
+
+---
+
 ## 🏗️ Estrutura do Projeto
 
 O projeto segue uma arquitetura baseada em domínios para facilitar a manutenção e escalabilidade:

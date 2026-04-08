@@ -6,6 +6,7 @@ import cors from 'cors';
 import { movieRoutes } from './domains/v1/movie/routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
+import { errorHandler } from './middlewares/error-handler';
 
 export const app = express();
 
@@ -34,6 +35,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'API rodando com Express e TS' });
 });
+
+// Middleware de Erro Centralizado
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

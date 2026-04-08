@@ -1,9 +1,13 @@
-import { prisma as defaultPrisma } from '../../../../lib/prisma';
 import logger from '../../../../lib/logger';
 import { PrismaClient } from '../../../../generated/prisma';
+import { CreateMovieDTO } from '../models/movie-models';
 
 export class MovieRepository {
-  constructor(private prisma: PrismaClient = defaultPrisma) {}
+  private prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
   async findByUserId(userId: string, skip: number = 0, take: number = 10) {
     const startTime = Date.now();
@@ -55,6 +59,28 @@ export class MovieRepository {
       return movie;
     } catch (error) {
       logger.error('Erro ao buscar filme por ID no MovieRepository', { error, id, userId });
+      throw error;
+    }
+  }
+
+  async create(data: CreateMovieDTO) {
+    const startTime = Date.now();
+    logger.info('Criando novo filme no repositório', { title: data.title, userId: data.userId });
+
+    try {
+      const movie = await this.prisma.movie.create({
+        data,
+      });
+
+      const duration = Date.now() - startTime;
+      logger.info('Filme criado com sucesso no banco', {
+        id: movie.id,
+        durationMs: duration,
+      });
+
+      return movie;
+    } catch (error) {
+      logger.error('Erro ao criar filme no MovieRepository', { error, title: data.title });
       throw error;
     }
   }

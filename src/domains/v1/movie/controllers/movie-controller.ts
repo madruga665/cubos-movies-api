@@ -1,9 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
 import logger from '../../../../lib/logger';
+import { createMovieSchema } from '../schemas/movie-schemas';
+import { AppError } from '../../../../lib/errors';
 
 export class MovieController {
-  constructor(private movieService: MovieService) {}
+  private service: MovieService;
+
+  constructor(service: MovieService) {
+    this.service = service;
+  }
 
   /**
    * @swagger
@@ -66,13 +72,12 @@ export class MovieController {
 
       logger.info('Chamando MovieService.listUserMovies', { userId, page, limit });
 
-      const response = await this.movieService.listUserMovies(userId, page, limit);
+      const response = await this.service.listUserMovies(userId, page, limit);
 
       logger.info('Requisição concluída com sucesso', { userId, count: response.result.length });
 
       res.status(200).json(response);
     } catch (error) {
-      logger.error('Erro em MovieController.listUserMovies', { error });
       next(error);
     }
   };
@@ -113,18 +118,97 @@ export class MovieController {
     logger.info('Iniciando MovieController.getMovieById', { id, userId });
 
     try {
-      const movie = await this.movieService.getMovieById(id as string, userId);
+      const movie = await this.service.getMovieById(id as string, userId);
 
       if (!movie) {
         logger.warn('Filme não encontrado no controller', { id, userId });
-        res.status(404).json({ message: 'Filme não encontrado.' });
-        return;
+        throw new AppError('Filme não encontrado.', 404);
       }
 
       logger.info('Resposta de filme enviada com sucesso', { id });
       res.status(200).json(movie);
     } catch (error) {
-      logger.error('Erro em MovieController.getMovieById', { error, id });
+      next(error);
+    }
+  };
+
+  /**
+   * @swagger
+   * /api/v1/movies:
+   *   post:
+   *     summary: Adiciona um novo filme ao catálogo do usuário
+   *     description: Cria um novo registro de filme vinculado ao usuário autenticado.
+   *     tags: [Movies]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - title
+   *               - originalTitle
+   *               - overview
+   *               - releaseDate
+   *               - runtime
+   *               - status
+   *               - originalLanguage
+   *             properties:
+   *               title: { type: string }
+   *               originalTitle: { type: string }
+   *               overview: { type: string }
+   *               releaseDate: { type: string, format: date-time }
+   *               runtime: { type: integer, description: 'Duração em minutos' }
+   *               status: { type: string }
+   *               originalLanguage: { type: string }
+   *               genres: { type: array, items: { type: string } }
+   *               tagline: { type: string }
+   *               posterUrl: { type: string }
+   *               backdropUrl: { type: string }
+   *               trailerUrl: { type: string }
+   *               certification: { type: string }
+   *               budget: { type: string, description: 'Valor em string para BigInt' }
+   *               revenue: { type: string }
+   *     responses:
+   *       201:
+   *         description: Filme criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Movie'
+   *       400:
+   *         description: Erro de validação nos campos enviados
+   *       401:
+   *         description: Não autorizado
+   *       500:
+   *         description: Erro interno do servidor
+   */
+  createMovie = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user.id;
+
+    logger.info('Iniciando MovieController.createMovie', { title: req.body.title, userId });
+
+    try {
+      // Validação com Zod
+      const validatedData = createMovieSchema.parse(req.body);
+
+      // Conversão de tipos para o Prisma e injeção do userId
+      const formattedData = {
+        ...validatedData,
+        userId,
+        budget: validatedData.budget ? BigInt(validatedData.budget) : undefined,
+        revenue: validatedData.revenue ? BigInt(validatedData.revenue) : undefined,
+        profit:
+          validatedData.budget && validatedData.revenue
+            ? BigInt(validatedData.revenue) - BigInt(validatedData.budget)
+            : undefined,
+      };
+
+      const movie = await this.service.createMovie(formattedData);
+
+      logger.info('Filme criado com sucesso no controller', { id: movie.id });
+      res.status(201).json(movie);
+    } catch (error) {
       next(error);
     }
   };
