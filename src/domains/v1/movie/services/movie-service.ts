@@ -2,6 +2,7 @@ import { MovieRepository } from '../repositories/movie-repository';
 import logger from '../../../../lib/logger';
 import { CreateMovieDTO } from '../models/movie-models';
 import { AppError } from '../../../../lib/errors';
+import { recommendedMovies } from '../../../../lib/recommended-movies';
 
 export class MovieService {
   private repository: MovieRepository;
@@ -63,6 +64,52 @@ export class MovieService {
 
     logger.info('Filme criado com sucesso no serviço', { id: movie.id });
     return movie;
+  }
+
+  async populateUserMovies(userId: string) {
+    logger.info('Iniciando MovieService.populateUserMovies', { userId });
+
+    if (!userId) {
+      logger.error('Falha na validação: UserId ausente');
+      throw new AppError('UserId é obrigatório', 400);
+    }
+
+    const alreadyPopulated = await this.repository.hasUserPopulated(userId);
+
+    if (alreadyPopulated) {
+      logger.warn('Tentativa de popular conta já populada', { userId });
+      throw new AppError('Sua conta já foi populada com filmes recomendados.', 400);
+    }
+
+    const moviesToCreate = recommendedMovies.map((movie) => ({
+      ...movie,
+      userId,
+    }));
+
+    const result = await this.repository.createMany(moviesToCreate);
+
+    await this.repository.markUserAsPopulated(userId);
+
+    logger.info('Filmes recomendados populados com sucesso', { userId, count: result.count });
+
+    return result;
+  }
+
+  async getOnboardingStatus(userId: string) {
+    logger.info('Iniciando MovieService.getOnboardingStatus', { userId });
+
+    if (!userId) {
+      logger.error('Falha na validação: UserId ausente');
+      throw new AppError('UserId é obrigatório', 400);
+    }
+
+    const usage = await this.repository.getUserFeatureUsage(userId);
+
+    // Retorna o status de todas as campanhas, defaultando para false se o registro não existir
+    return {
+      isPopulated: usage?.isPopulated || false,
+      // Você pode adicionar outras campanhas aqui no futuro
+    };
   }
 
   async deleteMovie(id: string, userId: string) {

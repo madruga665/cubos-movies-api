@@ -23,9 +23,24 @@ model User {
   sessions      Session[]
   accounts      Account[]
   movies        Movie[]
+  featureUsage  UserFeatureUsage?
 
   @@unique([email])
   @@map("user")
+}
+
+model UserFeatureUsage {
+  id          String   @id @default(uuid())
+  isPopulated Boolean  @default(false)
+  
+  // Relação com o Usuário
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_feature_usage")
 }
 
 model Session {

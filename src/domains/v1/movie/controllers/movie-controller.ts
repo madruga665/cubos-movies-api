@@ -215,6 +215,81 @@ export class MovieController {
 
   /**
    * @swagger
+   * /api/v1/movies/onboarding-status:
+   *   get:
+   *     summary: "Obtém o status de onboarding do usuário"
+   *     description: "Retorna se o usuário já utilizou certas funcionalidades (ex: popular conta)."
+   *     tags: [Movies]
+   *     responses:
+   *       200:
+   *         description: "Status retornado com sucesso"
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 isPopulated:
+   *                   type: boolean
+   *       401:
+   *         description: "Não autorizado"
+   *       500:
+   *         description: "Erro interno do servidor"
+   */
+  getOnboardingStatus = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user.id;
+
+    logger.info('Iniciando MovieController.getOnboardingStatus', { userId });
+
+    try {
+      const status = await this.service.getOnboardingStatus(userId);
+
+      res.status(200).json(status);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * @swagger
+   * /api/v1/movies/populate:
+   *   post:
+   *     summary: "Popula a conta do usuário com filmes recomendados"
+   *     description: "Adiciona uma lista pré-definida de 20 filmes recomendados à conta do usuário autenticado."
+   *     tags: [Movies]
+   *     responses:
+   *       201:
+   *         description: "Filmes recomendados adicionados com sucesso"
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 count:
+   *                   type: integer
+   *                   description: "Quantidade de filmes inseridos"
+   *       401:
+   *         description: "Não autorizado"
+   *       500:
+   *         description: "Erro interno do servidor"
+   */
+  populateUserMovies = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user.id;
+
+    logger.info('Iniciando MovieController.populateUserMovies', { userId });
+
+    try {
+      const result = await this.service.populateUserMovies(userId);
+
+      logger.info('Filmes populados com sucesso no controller', { userId, count: result.count });
+
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * @swagger
    * /api/v1/movies/{id}:
    *   delete:
    *     summary: Remove um filme do catálogo

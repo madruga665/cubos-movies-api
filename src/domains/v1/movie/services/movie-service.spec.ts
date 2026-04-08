@@ -18,6 +18,9 @@ describe('MovieService', () => {
     mockRepository.findByUserId = jest.fn();
     mockRepository.findById = jest.fn();
     mockRepository.create = jest.fn();
+    mockRepository.createMany = jest.fn();
+    mockRepository.hasUserPopulated = jest.fn();
+    mockRepository.markUserAsPopulated = jest.fn();
     mockRepository.softDelete = jest.fn();
     movieService = new MovieService(mockRepository);
   });
@@ -93,6 +96,33 @@ describe('MovieService', () => {
 
       expect(result.id).toBe('new-id');
       expect(mockRepository.create).toHaveBeenCalledWith(validMovieData);
+    });
+  });
+
+  describe('populateUserMovies', () => {
+    it('deve popular filmes recomendados para um usuário com sucesso', async () => {
+      mockRepository.hasUserPopulated.mockResolvedValue(false);
+      mockRepository.createMany.mockResolvedValue({ count: 20 });
+      mockRepository.markUserAsPopulated.mockResolvedValue({} as any);
+
+      const result = await movieService.populateUserMovies('user-1');
+
+      expect(result.count).toBe(20);
+      expect(mockRepository.hasUserPopulated).toHaveBeenCalledWith('user-1');
+      expect(mockRepository.createMany).toHaveBeenCalled();
+      expect(mockRepository.markUserAsPopulated).toHaveBeenCalledWith('user-1');
+    });
+
+    it('deve lançar erro se o usuário já tiver populado a conta', async () => {
+      mockRepository.hasUserPopulated.mockResolvedValue(true);
+
+      await expect(movieService.populateUserMovies('user-1')).rejects.toThrow(
+        'Sua conta já foi populada com filmes recomendados.',
+      );
+    });
+
+    it('deve lançar erro se userId não for fornecido', async () => {
+      await expect(movieService.populateUserMovies('')).rejects.toThrow('UserId é obrigatório');
     });
   });
 

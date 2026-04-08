@@ -85,6 +85,56 @@ export class MovieRepository {
     }
   }
 
+  async createMany(data: CreateMovieDTO[]) {
+    const startTime = Date.now();
+    logger.info('Criando múltiplos filmes no repositório', { count: data.length });
+
+    try {
+      const result = await this.prisma.movie.createMany({
+        data,
+      });
+
+      const duration = Date.now() - startTime;
+      logger.info('Múltiplos filmes criados com sucesso no banco', {
+        count: result.count,
+        durationMs: duration,
+      });
+
+      return result;
+    } catch (error) {
+      logger.error('Erro ao criar múltiplos filmes no MovieRepository', { error });
+      throw error;
+    }
+  }
+
+  async hasUserPopulated(userId: string): Promise<boolean> {
+    logger.info('Verificando se usuário já populou filmes', { userId });
+
+    const usage = await this.prisma.userFeatureUsage.findUnique({
+      where: { userId },
+    });
+
+    return !!usage?.isPopulated;
+  }
+
+  async getUserFeatureUsage(userId: string) {
+    logger.info('Buscando registro de uso de funcionalidades do usuário', { userId });
+
+    return this.prisma.userFeatureUsage.findUnique({
+      where: { userId },
+    });
+  }
+
+  async markUserAsPopulated(userId: string) {
+    logger.info('Marcando usuário como já populado', { userId });
+
+    return this.prisma.userFeatureUsage.upsert({
+      where: { userId },
+      update: { isPopulated: true },
+      create: { userId, isPopulated: true },
+    });
+  }
+
   async softDelete(id: string, userId: string) {
     const startTime = Date.now();
     logger.info('Iniciando soft delete de filme no repositório', { id, userId });
