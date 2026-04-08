@@ -212,4 +212,45 @@ export class MovieController {
       next(error);
     }
   };
+
+  /**
+   * @swagger
+   * /api/v1/movies/{id}:
+   *   delete:
+   *     summary: Remove um filme do catálogo
+   *     description: Realiza a exclusão lógica (soft delete) de um filme associado ao usuário.
+   *     tags: [Movies]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID do filme
+   *     responses:
+   *       204:
+   *         description: Filme removido com sucesso
+   *       404:
+   *         description: Filme não encontrado
+   *       401:
+   *         description: Não autorizado
+   *       500:
+   *         description: Erro interno do servidor
+   */
+  deleteMovie = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    logger.info('Iniciando MovieController.deleteMovie', { id, userId });
+
+    try {
+      await this.service.deleteMovie(id as string, userId);
+
+      logger.info('Filme deletado com sucesso no controller', { id });
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  };
 }

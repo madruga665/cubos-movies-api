@@ -18,6 +18,7 @@ describe('MovieService', () => {
     mockRepository.findByUserId = jest.fn();
     mockRepository.findById = jest.fn();
     mockRepository.create = jest.fn();
+    mockRepository.softDelete = jest.fn();
     movieService = new MovieService(mockRepository);
   });
 
@@ -92,6 +93,33 @@ describe('MovieService', () => {
 
       expect(result.id).toBe('new-id');
       expect(mockRepository.create).toHaveBeenCalledWith(validMovieData);
+    });
+  });
+
+  describe('deleteMovie', () => {
+    it('deve deletar um filme com sucesso', async () => {
+      const mockMovie = { id: 'movie-1', userId: 'user-1' };
+      mockRepository.findById.mockResolvedValue(mockMovie as any);
+      mockRepository.softDelete.mockResolvedValue({ ...mockMovie, deleted: true } as any);
+
+      await movieService.deleteMovie('movie-1', 'user-1');
+
+      expect(mockRepository.findById).toHaveBeenCalledWith('movie-1', 'user-1');
+      expect(mockRepository.softDelete).toHaveBeenCalledWith('movie-1', 'user-1');
+    });
+
+    it('deve lançar erro se o filme não existir ou não pertencer ao usuário', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+
+      await expect(movieService.deleteMovie('non-existent', 'user-1')).rejects.toThrow(
+        'Filme não encontrado.',
+      );
+    });
+
+    it('deve lançar erro se ID ou UserId não forem fornecidos', async () => {
+      await expect(movieService.deleteMovie('', 'user-1')).rejects.toThrow(
+        'ID e UserId são obrigatórios',
+      );
     });
   });
 });
