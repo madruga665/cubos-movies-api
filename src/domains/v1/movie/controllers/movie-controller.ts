@@ -76,4 +76,56 @@ export class MovieController {
       next(error);
     }
   };
+
+  /**
+   * @swagger
+   * /api/v1/movies/{id}:
+   *   get:
+   *     summary: Obtém os detalhes de um filme específico
+   *     description: Retorna os dados de um filme associado ao usuário pelo seu ID.
+   *     tags: [Movies]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID do filme
+   *     responses:
+   *       200:
+   *         description: Filme encontrado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Movie'
+   *       404:
+   *         description: Filme não encontrado
+   *       401:
+   *         description: Não autorizado
+   *       500:
+   *         description: Erro interno do servidor
+   */
+  getMovieById = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    logger.info('Iniciando MovieController.getMovieById', { id, userId });
+
+    try {
+      const movie = await this.movieService.getMovieById(id as string, userId);
+
+      if (!movie) {
+        logger.warn('Filme não encontrado no controller', { id, userId });
+        res.status(404).json({ message: 'Filme não encontrado.' });
+        return;
+      }
+
+      logger.info('Resposta de filme enviada com sucesso', { id });
+      res.status(200).json(movie);
+    } catch (error) {
+      logger.error('Erro em MovieController.getMovieById', { error, id });
+      next(error);
+    }
+  };
 }

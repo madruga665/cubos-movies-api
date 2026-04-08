@@ -12,3 +12,4 @@ const movieService = new MovieService(movieRepository);
 const movieController = new MovieController(movieService);
 
 movieRoutes.get('/', authMiddleware, movieController.listUserMovies);
+movieRoutes.get('/:id', authMiddleware, movieController.getMovieById);
