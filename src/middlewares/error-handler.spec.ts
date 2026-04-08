@@ -8,7 +8,7 @@ import logger from '../lib/logger';
 describe('ErrorHandler Middleware', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
-  let nextFunction: NextFunction = jest.fn();
+  const nextFunction: NextFunction = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -17,7 +17,7 @@ describe('ErrorHandler Middleware', () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
     } as Partial<Response>;
-    
+
     // Usamos spyOn se o mock total falhar
     jest.spyOn(logger, 'error').mockImplementation(() => logger);
     jest.spyOn(logger, 'warn').mockImplementation(() => logger);
