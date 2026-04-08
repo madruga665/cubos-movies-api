@@ -1,6 +1,7 @@
 import { MovieRepository } from '../repositories/movie-repository';
 import logger from '../../../../lib/logger';
 import { CreateMovieDTO } from '../models/movie-models';
+import { AppError } from '../../../../lib/errors';
 
 export class MovieService {
   private repository: MovieRepository;
@@ -62,5 +63,25 @@ export class MovieService {
 
     logger.info('Filme criado com sucesso no serviço', { id: movie.id });
     return movie;
+  }
+
+  async deleteMovie(id: string, userId: string) {
+    logger.info('Iniciando MovieService.deleteMovie', { id, userId });
+
+    if (!id || !userId) {
+      logger.error('Falha na validação: ID ou UserId ausente');
+      throw new AppError('ID e UserId são obrigatórios', 400);
+    }
+
+    const movie = await this.repository.findById(id, userId);
+
+    if (!movie) {
+      logger.warn('Filme não encontrado para deleção', { id, userId });
+      throw new AppError('Filme não encontrado.', 404);
+    }
+
+    await this.repository.softDelete(id, userId);
+
+    logger.info('Filme deletado com sucesso no serviço', { id });
   }
 }

@@ -16,13 +16,13 @@ export class MovieRepository {
     try {
       const [movies, total] = await Promise.all([
         this.prisma.movie.findMany({
-          where: { userId },
+          where: { userId, deleted: false },
           skip,
           take,
           orderBy: { createdAt: 'desc' },
         }),
         this.prisma.movie.count({
-          where: { userId },
+          where: { userId, deleted: false },
         }),
       ]);
 
@@ -45,8 +45,8 @@ export class MovieRepository {
     logger.info('Buscando filme por ID no repositório', { id, userId });
 
     try {
-      const movie = await this.prisma.movie.findUnique({
-        where: { id, userId },
+      const movie = await this.prisma.movie.findFirst({
+        where: { id, userId, deleted: false },
       });
 
       const duration = Date.now() - startTime;
@@ -81,6 +81,32 @@ export class MovieRepository {
       return movie;
     } catch (error) {
       logger.error('Erro ao criar filme no MovieRepository', { error, title: data.title });
+      throw error;
+    }
+  }
+
+  async softDelete(id: string, userId: string) {
+    const startTime = Date.now();
+    logger.info('Iniciando soft delete de filme no repositório', { id, userId });
+
+    try {
+      const movie = await this.prisma.movie.update({
+        where: { id, userId },
+        data: {
+          deleted: true,
+          deletedAt: new Date(),
+        },
+      });
+
+      const duration = Date.now() - startTime;
+      logger.info('Soft delete concluído no banco', {
+        id,
+        durationMs: duration,
+      });
+
+      return movie;
+    } catch (error) {
+      logger.error('Erro ao realizar soft delete no MovieRepository', { error, id, userId });
       throw error;
     }
   }
