@@ -1,6 +1,6 @@
 import { MovieRepository } from '../repositories/movie-repository';
 import logger from '../../../../lib/logger';
-import { CreateMovieDTO } from '../models/movie-models';
+import { CreateMovieDTO, UpdateMovieDTO } from '../models/movie-models';
 import { AppError } from '../../../../lib/errors';
 import { recommendedMovies } from '../../../../lib/recommended-movies';
 
@@ -64,6 +64,27 @@ export class MovieService {
 
     logger.info('Filme criado com sucesso no serviço', { id: movie.id });
     return movie;
+  }
+
+  async updateMovie(id: string, userId: string, data: UpdateMovieDTO) {
+    logger.info('Iniciando MovieService.updateMovie', { id, userId });
+
+    if (!id || !userId) {
+      logger.error('Falha na validação: ID ou UserId ausente');
+      throw new AppError('ID e UserId são obrigatórios', 400);
+    }
+
+    const movie = await this.repository.findById(id, userId);
+
+    if (!movie) {
+      logger.warn('Filme não encontrado para atualização', { id, userId });
+      throw new AppError('Filme não encontrado.', 404);
+    }
+
+    const updatedMovie = await this.repository.update(id, userId, data);
+
+    logger.info('Filme atualizado com sucesso no serviço', { id });
+    return updatedMovie;
   }
 
   async populateUserMovies(userId: string) {

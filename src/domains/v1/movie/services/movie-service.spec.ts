@@ -18,6 +18,7 @@ describe('MovieService', () => {
     mockRepository.findByUserId = jest.fn();
     mockRepository.findById = jest.fn();
     mockRepository.create = jest.fn();
+    mockRepository.update = jest.fn();
     mockRepository.createMany = jest.fn();
     mockRepository.hasUserPopulated = jest.fn();
     mockRepository.markUserAsPopulated = jest.fn();
@@ -96,6 +97,29 @@ describe('MovieService', () => {
 
       expect(result.id).toBe('new-id');
       expect(mockRepository.create).toHaveBeenCalledWith(validMovieData);
+    });
+  });
+
+  describe('updateMovie', () => {
+    it('deve atualizar um filme com sucesso', async () => {
+      const updateData = { title: 'Updated Title' };
+      const mockMovie = { id: 'movie-1', userId: 'user-1', title: 'Old Title' };
+      
+      mockRepository.findById.mockResolvedValue(mockMovie as any);
+      mockRepository.update.mockResolvedValue({ ...mockMovie, ...updateData } as any);
+
+      const result = await movieService.updateMovie('movie-1', 'user-1', updateData);
+
+      expect(result.title).toBe('Updated Title');
+      expect(mockRepository.update).toHaveBeenCalledWith('movie-1', 'user-1', updateData);
+    });
+
+    it('deve lançar erro se o filme não for encontrado', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+
+      await expect(movieService.updateMovie('non-existent', 'user-1', {})).rejects.toThrow(
+        'Filme não encontrado.',
+      );
     });
   });
 

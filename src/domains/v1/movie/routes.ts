@@ -15,5 +15,6 @@ movieRoutes.get('/', authMiddleware, movieController.listUserMovies);
 movieRoutes.get('/onboarding-status', authMiddleware, movieController.getOnboardingStatus);
 movieRoutes.post('/populate', authMiddleware, movieController.populateUserMovies);
 movieRoutes.get('/:id', authMiddleware, movieController.getMovieById);
+movieRoutes.patch('/:id', authMiddleware, movieController.updateMovie);
 movieRoutes.post('/', authMiddleware, movieController.createMovie);
 movieRoutes.delete('/:id', authMiddleware, movieController.deleteMovie);

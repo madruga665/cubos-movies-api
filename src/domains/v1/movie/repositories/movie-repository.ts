@@ -1,6 +1,6 @@
 import logger from '../../../../lib/logger';
 import { PrismaClient } from '../../../../generated/prisma';
-import { CreateMovieDTO } from '../models/movie-models';
+import { CreateMovieDTO, UpdateMovieDTO } from '../models/movie-models';
 
 export class MovieRepository {
   private prisma: PrismaClient;
@@ -81,6 +81,29 @@ export class MovieRepository {
       return movie;
     } catch (error) {
       logger.error('Erro ao criar filme no MovieRepository', { error, title: data.title });
+      throw error;
+    }
+  }
+
+  async update(id: string, userId: string, data: UpdateMovieDTO) {
+    const startTime = Date.now();
+    logger.info('Atualizando filme no repositório', { id, userId });
+
+    try {
+      const movie = await this.prisma.movie.update({
+        where: { id, userId },
+        data,
+      });
+
+      const duration = Date.now() - startTime;
+      logger.info('Filme atualizado com sucesso no banco', {
+        id: movie.id,
+        durationMs: duration,
+      });
+
+      return movie;
+    } catch (error) {
+      logger.error('Erro ao atualizar filme no MovieRepository', { error, id });
       throw error;
     }
   }

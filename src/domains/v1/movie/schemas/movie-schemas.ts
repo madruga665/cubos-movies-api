@@ -20,4 +20,7 @@ export const createMovieSchema = z.object({
   revenue: z.coerce.string().optional().nullable(),
 });
 
+export const updateMovieSchema = createMovieSchema.partial();
+
 export type CreateMovieInput = z.infer<typeof createMovieSchema>;
+export type UpdateMovieInput = z.infer<typeof updateMovieSchema>;

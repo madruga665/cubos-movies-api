@@ -19,3 +19,5 @@ export interface CreateMovieDTO {
   revenue?: bigint | null;
   profit?: bigint | null;
 }
+
+export type UpdateMovieDTO = Partial<Omit<CreateMovieDTO, 'userId'>>;

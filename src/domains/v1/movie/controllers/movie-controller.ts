@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
 import logger from '../../../../lib/logger';
-import { createMovieSchema } from '../schemas/movie-schemas';
+import { createMovieSchema, updateMovieSchema } from '../schemas/movie-schemas';
 import { AppError } from '../../../../lib/errors';
 
 export class MovieController {
@@ -205,17 +205,81 @@ export class MovieController {
       };
 
       const movie = await this.service.createMovie(formattedData);
+logger.info('Filme criado com sucesso no controller', { id: movie.id });
+res.status(201).json(movie);
+} catch (error) {
+next(error);
+}
+};
 
-      logger.info('Filme criado com sucesso no controller', { id: movie.id });
-      res.status(201).json(movie);
-    } catch (error) {
-      next(error);
-    }
-  };
+/**
+* @swagger
+* /api/v1/movies/{id}:
+*   patch:
+*     summary: "Atualiza parcialmente um filme"
+*     description: "Permite a edição parcial dos dados de um filme vinculado ao usuário."
+*     tags: [Movies]
+*     parameters:
+*       - in: path
+*         name: id
+*         required: true
+*         schema:
+*           type: string
+*           format: uuid
+*         description: ID do filme
+*     requestBody:
+*       content:
+*         application/json:
+*           schema:
+*             $ref: '#/components/schemas/Movie'
+*     responses:
+*       200:
+*         description: "Filme atualizado com sucesso"
+*         content:
+*           application/json:
+*             schema:
+*               $ref: '#/components/schemas/Movie'
+*       400:
+*         description: "Erro de validação"
+*       404:
+*         description: "Filme não encontrado"
+*       401:
+*         description: "Não autorizado"
+*       500:
+*         description: "Erro interno do servidor"
+*/
+updateMovie = async (req: Request, res: Response, next: NextFunction) => {
+const { id } = req.params;
+const userId = req.user.id;
 
-  /**
-   * @swagger
-   * /api/v1/movies/onboarding-status:
+logger.info('Iniciando MovieController.updateMovie', { id, userId });
+
+try {
+const validatedData = updateMovieSchema.parse(req.body);
+
+const formattedData: any = { ...validatedData };
+
+if (validatedData.budget !== undefined) {
+  formattedData.budget = validatedData.budget ? BigInt(validatedData.budget) : null;
+}
+
+if (validatedData.revenue !== undefined) {
+  formattedData.revenue = validatedData.revenue ? BigInt(validatedData.revenue) : null;
+}
+
+const movie = await this.service.updateMovie(id as string, userId, formattedData);
+
+logger.info('Filme atualizado com sucesso no controller', { id: movie.id });
+res.status(200).json(movie);
+} catch (error) {
+next(error);
+}
+};
+
+/**
+* @swagger
+* /api/v1/movies/{id}:
+*   delete:
    *   get:
    *     summary: "Obtém o status de onboarding do usuário"
    *     description: "Retorna se o usuário já utilizou certas funcionalidades (ex: popular conta)."
