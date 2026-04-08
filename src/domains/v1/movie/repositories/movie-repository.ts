@@ -35,4 +35,27 @@ export class MovieRepository {
       throw error;
     }
   }
+
+  async findById(id: string, userId: string) {
+    const startTime = Date.now();
+    logger.info('Buscando filme por ID no repositório', { id, userId });
+
+    try {
+      const movie = await this.prisma.movie.findUnique({
+        where: { id, userId },
+      });
+
+      const duration = Date.now() - startTime;
+      logger.info('Consulta de filme por ID concluída', {
+        id,
+        found: !!movie,
+        durationMs: duration,
+      });
+
+      return movie;
+    } catch (error) {
+      logger.error('Erro ao buscar filme por ID no MovieRepository', { error, id, userId });
+      throw error;
+    }
+  }
 }

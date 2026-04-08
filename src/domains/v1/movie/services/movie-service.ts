@@ -30,4 +30,23 @@ export class MovieService {
       },
     };
   }
+
+  async getMovieById(id: string, userId: string) {
+    logger.info('Iniciando MovieService.getMovieById', { id, userId });
+
+    if (!id || !userId) {
+      logger.error('Falha na validação: ID ou UserId ausente');
+      throw new Error('ID e UserId são obrigatórios');
+    }
+
+    const movie = await this.repository.findById(id, userId);
+
+    if (!movie) {
+      logger.warn('Filme não encontrado no serviço', { id, userId });
+      return null;
+    }
+
+    logger.info('Filme recuperado com sucesso no serviço', { id });
+    return movie;
+  }
 }
