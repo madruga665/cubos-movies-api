@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
 import logger from '../../../../lib/logger';
 import { createMovieSchema } from '../schemas/movie-schemas';
-import { z } from 'zod';
+import { AppError } from '../../../../lib/errors';
 
 export class MovieController {
   private service: MovieService;
@@ -78,7 +78,6 @@ export class MovieController {
 
       res.status(200).json(response);
     } catch (error) {
-      logger.error('Erro em MovieController.listUserMovies', { error });
       next(error);
     }
   };
@@ -123,14 +122,12 @@ export class MovieController {
 
       if (!movie) {
         logger.warn('Filme não encontrado no controller', { id, userId });
-        res.status(404).json({ message: 'Filme não encontrado.' });
-        return;
+        throw new AppError('Filme não encontrado.', 404);
       }
 
       logger.info('Resposta de filme enviada com sucesso', { id });
       res.status(200).json(movie);
     } catch (error) {
-      logger.error('Erro em MovieController.getMovieById', { error, id });
       next(error);
     }
   };
@@ -186,7 +183,7 @@ export class MovieController {
    *       500:
    *         description: Erro interno do servidor
    */
-  createMovie = async (req: Request, res: Response) => {
+  createMovie = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user.id;
 
     logger.info('Iniciando MovieController.createMovie', { title: req.body.title, userId });
@@ -212,19 +209,7 @@ export class MovieController {
       logger.info('Filme criado com sucesso no controller', { id: movie.id });
       res.status(201).json(movie);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        logger.warn('Falha na validação do Zod', { errors: error.issues });
-        res.status(400).json({
-          message: 'Erro de validação',
-          errors: error.issues.map((e) => ({ path: e.path, message: e.message })),
-        });
-        return;
-      }
-
-      if (error instanceof Error) {
-        logger.error('Erro em MovieController.createMovie', { error: error.message });
-        res.status(400).json({ message: error.message });
-      }
+      next(error);
     }
   };
 }
