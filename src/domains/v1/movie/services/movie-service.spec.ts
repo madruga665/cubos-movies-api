@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { MovieService } from './movie-service';
 import { MovieRepository } from '../repositories/movie-repository';
+import { CreateMovieDTO } from '../models/movie-models';
 
 // Mock do Repositório
-jest.mock('../repositories/movie-repository.js');
+jest.mock('../repositories/movie-repository');
 
 describe('MovieService', () => {
   let movieService: MovieService;
@@ -11,9 +13,11 @@ describe('MovieService', () => {
 
   beforeEach(() => {
     // Cria o mock do repositório e injeta via construtor (DI)
-    mockRepository = new MovieRepository() as jest.Mocked<MovieRepository>;
+    // Passamos null ou um objeto vazio para o construtor do repositório mockado
+    mockRepository = new MovieRepository(null as any) as jest.Mocked<MovieRepository>;
     mockRepository.findByUserId = jest.fn();
     mockRepository.findById = jest.fn();
+    mockRepository.create = jest.fn();
     movieService = new MovieService(mockRepository);
   });
 
@@ -59,8 +63,35 @@ describe('MovieService', () => {
     });
 
     it('deve lançar erro se ID ou UserId estiverem ausentes', async () => {
-      await expect(movieService.getMovieById('', 'user-1')).rejects.toThrow('ID e UserId são obrigatórios');
-      await expect(movieService.getMovieById('movie-1', '')).rejects.toThrow('ID e UserId são obrigatórios');
+      await expect(movieService.getMovieById('', 'user-1')).rejects.toThrow(
+        'ID e UserId são obrigatórios',
+      );
+      await expect(movieService.getMovieById('movie-1', '')).rejects.toThrow(
+        'ID e UserId são obrigatórios',
+      );
+    });
+  });
+
+  describe('createMovie', () => {
+    const validMovieData: CreateMovieDTO = {
+      title: 'New Movie',
+      originalTitle: 'Original Title',
+      overview: 'Movie overview',
+      releaseDate: new Date(),
+      runtime: 120,
+      status: 'Lançado',
+      originalLanguage: 'Inglês',
+      genres: ['Ação'],
+      userId: 'user-1',
+    };
+
+    it('deve criar um filme com sucesso', async () => {
+      mockRepository.create.mockResolvedValue({ id: 'new-id', ...validMovieData } as any);
+
+      const result = await movieService.createMovie(validMovieData);
+
+      expect(result.id).toBe('new-id');
+      expect(mockRepository.create).toHaveBeenCalledWith(validMovieData);
     });
   });
 });

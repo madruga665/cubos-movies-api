@@ -1,9 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
 import logger from '../../../../lib/logger';
+import { createMovieSchema } from '../schemas/movie-schemas';
+import { z } from 'zod';
 
 export class MovieController {
-  constructor(private movieService: MovieService) {}
+  private service: MovieService;
+
+  constructor(service: MovieService) {
+    this.service = service;
+  }
 
   /**
    * @swagger
@@ -66,7 +72,7 @@ export class MovieController {
 
       logger.info('Chamando MovieService.listUserMovies', { userId, page, limit });
 
-      const response = await this.movieService.listUserMovies(userId, page, limit);
+      const response = await this.service.listUserMovies(userId, page, limit);
 
       logger.info('Requisição concluída com sucesso', { userId, count: response.result.length });
 
@@ -113,7 +119,7 @@ export class MovieController {
     logger.info('Iniciando MovieController.getMovieById', { id, userId });
 
     try {
-      const movie = await this.movieService.getMovieById(id as string, userId);
+      const movie = await this.service.getMovieById(id as string, userId);
 
       if (!movie) {
         logger.warn('Filme não encontrado no controller', { id, userId });
@@ -126,6 +132,99 @@ export class MovieController {
     } catch (error) {
       logger.error('Erro em MovieController.getMovieById', { error, id });
       next(error);
+    }
+  };
+
+  /**
+   * @swagger
+   * /api/v1/movies:
+   *   post:
+   *     summary: Adiciona um novo filme ao catálogo do usuário
+   *     description: Cria um novo registro de filme vinculado ao usuário autenticado.
+   *     tags: [Movies]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - title
+   *               - originalTitle
+   *               - overview
+   *               - releaseDate
+   *               - runtime
+   *               - status
+   *               - originalLanguage
+   *             properties:
+   *               title: { type: string }
+   *               originalTitle: { type: string }
+   *               overview: { type: string }
+   *               releaseDate: { type: string, format: date-time }
+   *               runtime: { type: integer, description: 'Duração em minutos' }
+   *               status: { type: string }
+   *               originalLanguage: { type: string }
+   *               genres: { type: array, items: { type: string } }
+   *               tagline: { type: string }
+   *               posterUrl: { type: string }
+   *               backdropUrl: { type: string }
+   *               trailerUrl: { type: string }
+   *               certification: { type: string }
+   *               budget: { type: string, description: 'Valor em string para BigInt' }
+   *               revenue: { type: string }
+   *     responses:
+   *       201:
+   *         description: Filme criado com sucesso
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Movie'
+   *       400:
+   *         description: Erro de validação nos campos enviados
+   *       401:
+   *         description: Não autorizado
+   *       500:
+   *         description: Erro interno do servidor
+   */
+  createMovie = async (req: Request, res: Response) => {
+    const userId = req.user.id;
+
+    logger.info('Iniciando MovieController.createMovie', { title: req.body.title, userId });
+
+    try {
+      // Validação com Zod
+      const validatedData = createMovieSchema.parse(req.body);
+
+      // Conversão de tipos para o Prisma e injeção do userId
+      const formattedData = {
+        ...validatedData,
+        userId,
+        budget: validatedData.budget ? BigInt(validatedData.budget) : undefined,
+        revenue: validatedData.revenue ? BigInt(validatedData.revenue) : undefined,
+        profit:
+          validatedData.budget && validatedData.revenue
+            ? BigInt(validatedData.revenue) - BigInt(validatedData.budget)
+            : undefined,
+      };
+
+      const movie = await this.service.createMovie(formattedData);
+
+      logger.info('Filme criado com sucesso no controller', { id: movie.id });
+      res.status(201).json(movie);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        logger.warn('Falha na validação do Zod', { errors: error.issues });
+        res.status(400).json({
+          message: 'Erro de validação',
+          errors: error.issues.map((e) => ({ path: e.path, message: e.message })),
+        });
+        return;
+      }
+
+      if (error instanceof Error) {
+        logger.error('Erro em MovieController.createMovie', { error: error.message });
+        res.status(400).json({ message: error.message });
+      }
     }
   };
 }

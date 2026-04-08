@@ -1,8 +1,13 @@
 import { MovieRepository } from '../repositories/movie-repository';
 import logger from '../../../../lib/logger';
+import { CreateMovieDTO } from '../models/movie-models';
 
 export class MovieService {
-  constructor(private repository: MovieRepository = new MovieRepository()) {}
+  private repository: MovieRepository;
+
+  constructor(repository: MovieRepository) {
+    this.repository = repository;
+  }
 
   async listUserMovies(userId: string, page: number = 1, limit: number = 10) {
     logger.info('Iniciando MovieService.listUserMovies', { userId, page, limit });
@@ -47,6 +52,15 @@ export class MovieService {
     }
 
     logger.info('Filme recuperado com sucesso no serviço', { id });
+    return movie;
+  }
+
+  async createMovie(data: CreateMovieDTO) {
+    logger.info('Iniciando MovieService.createMovie', { title: data.title, userId: data.userId });
+
+    const movie = await this.repository.create(data);
+
+    logger.info('Filme criado com sucesso no serviço', { id: movie.id });
     return movie;
   }
 }
