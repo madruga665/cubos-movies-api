@@ -11,8 +11,8 @@ export class MovieService {
     this.repository = repository;
   }
 
-  async listUserMovies(userId: string, page: number = 1, limit: number = 10) {
-    logger.info('Iniciando MovieService.listUserMovies', { userId, page, limit });
+  async listUserMovies(userId: string, page: number = 1, limit: number = 10, title?: string) {
+    logger.info('Iniciando MovieService.listUserMovies', { userId, page, limit, title });
 
     if (!userId) {
       logger.error('Falha na validação do MovieService: userId ausente');
@@ -21,9 +21,9 @@ export class MovieService {
 
     const skip = (page - 1) * limit;
 
-    logger.info('Buscando filmes no repositório', { skip, limit });
+    logger.info('Buscando filmes no repositório', { skip, limit, title });
 
-    const { movies, total } = await this.repository.findByUserId(userId, skip, limit);
+    const { movies, total } = await this.repository.findByUserId(userId, skip, limit, title);
 
     logger.info('Filmes recuperados com sucesso', { count: movies.length, total });
 

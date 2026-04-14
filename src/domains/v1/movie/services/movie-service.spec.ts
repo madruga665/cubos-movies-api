@@ -41,7 +41,22 @@ describe('MovieService', () => {
 
     expect(result.result).toHaveLength(2);
     expect(result.metadata.total).toBe(2);
-    expect(mockRepository.findByUserId).toHaveBeenCalledWith('user1', 0, 10);
+    expect(mockRepository.findByUserId).toHaveBeenCalledWith('user1', 0, 10, undefined);
+  });
+
+  it('deve listar filmes filtrando por título com sucesso', async () => {
+    const mockMovies = [{ id: '1', title: 'Spider-Man', userId: 'user1' }];
+
+    mockRepository.findByUserId.mockResolvedValue({
+      movies: mockMovies as any,
+      total: 1,
+    });
+
+    const result = await movieService.listUserMovies('user1', 1, 10, 'Spider');
+
+    expect(result.result).toHaveLength(1);
+    expect(result.result[0].title).toBe('Spider-Man');
+    expect(mockRepository.findByUserId).toHaveBeenCalledWith('user1', 0, 10, 'Spider');
   });
 
   it('deve lançar erro se userId não for fornecido', async () => {

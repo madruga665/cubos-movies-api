@@ -9,20 +9,29 @@ export class MovieRepository {
     this.prisma = prisma;
   }
 
-  async findByUserId(userId: string, skip: number = 0, take: number = 10) {
+  async findByUserId(userId: string, skip: number = 0, take: number = 10, title?: string) {
     const startTime = Date.now();
-    logger.info('Iniciando consulta ao Prisma para findByUserId', { userId, skip, take });
+    logger.info('Iniciando consulta ao Prisma para findByUserId', { userId, skip, take, title });
 
     try {
+      const where: any = { userId, deleted: false };
+      
+      if (title) {
+        where.title = {
+          contains: title,
+          mode: 'insensitive',
+        };
+      }
+
       const [movies, total] = await Promise.all([
         this.prisma.movie.findMany({
-          where: { userId, deleted: false },
+          where,
           skip,
           take,
           orderBy: { createdAt: 'desc' },
         }),
         this.prisma.movie.count({
-          where: { userId, deleted: false },
+          where,
         }),
       ]);
 
