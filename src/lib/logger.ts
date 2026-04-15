@@ -2,11 +2,7 @@ import winston from 'winston';
 import LokiTransport from 'winston-loki';
 
 const logger = winston.createLogger({
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }), // Garante que pilhas de erro sejam capturadas
-    winston.format.metadata(), // Move campos extras para um campo metadata
-  ),
+  format: winston.format.json(),
   transports: [
     new LokiTransport({
       basicAuth: `${process.env.LOKI_USER_ID}:${process.env.LOKI_TOKEN}`,
@@ -17,7 +13,7 @@ const logger = winston.createLogger({
       onConnectionError: (err) => console.error('Erro ao conectar ao Loki', err),
     }),
     new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+      format: winston.format.simple(),
     }),
   ],
 });
