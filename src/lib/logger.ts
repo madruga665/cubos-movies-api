@@ -2,7 +2,6 @@ import winston from 'winston';
 import LokiTransport from 'winston-loki';
 
 const logger = winston.createLogger({
-  format: winston.format.json(),
   transports: [
     new LokiTransport({
       basicAuth: `${process.env.LOKI_USER_ID}:${process.env.LOKI_TOKEN}`,
