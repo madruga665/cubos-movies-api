@@ -14,8 +14,17 @@ export class MovieRepository {
     logger.info('Iniciando consulta ao Prisma para findByUserId', { userId, skip, take, title });
 
     try {
-      const where: any = { userId, deleted: false };
-      
+      type WhereClause = {
+        userId: string;
+        deleted: boolean;
+        title?: {
+          contains: string;
+          mode: 'insensitive';
+        };
+      };
+
+      const where: WhereClause = { userId, deleted: false };
+
       if (title) {
         where.title = {
           contains: title,

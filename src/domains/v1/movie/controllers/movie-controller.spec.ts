@@ -2,7 +2,6 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { MovieController } from './movie-controller';
 import { MovieService } from '../services/movie-service';
-import logger from '../../../../lib/logger';
 
 // Mock do Serviço e Logger
 jest.mock('../services/movie-service');
@@ -18,7 +17,7 @@ describe('MovieController', () => {
   beforeEach(() => {
     mockService = new MovieService(null as any) as jest.Mocked<MovieService>;
     mockService.listUserMovies = jest.fn();
-    
+
     movieController = new MovieController(mockService);
 
     mockRequest = {
@@ -40,12 +39,12 @@ describe('MovieController', () => {
   describe('listUserMovies', () => {
     it('deve chamar o serviço com o parâmetro title quando fornecido na query', async () => {
       mockRequest.query = { title: 'Spider-Man', page: '1', limit: '10' };
-      
+
       const mockResult = {
         result: [],
         metadata: { total: 0, page: 1, limit: 10, totalPages: 0 },
       };
-      
+
       mockService.listUserMovies.mockResolvedValue(mockResult as any);
 
       await movieController.listUserMovies(mockRequest, mockResponse, mockNext);
@@ -57,12 +56,12 @@ describe('MovieController', () => {
 
     it('deve chamar o serviço com title undefined quando não fornecido na query', async () => {
       mockRequest.query = { page: '1', limit: '10' };
-      
+
       const mockResult = {
         result: [],
         metadata: { total: 0, page: 1, limit: 10, totalPages: 0 },
       };
-      
+
       mockService.listUserMovies.mockResolvedValue(mockResult as any);
 
       await movieController.listUserMovies(mockRequest, mockResponse, mockNext);

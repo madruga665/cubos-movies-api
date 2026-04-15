@@ -44,7 +44,7 @@ describe('ErrorHandler Middleware', () => {
         received: 'undefined',
         path: ['title'],
         message: 'Required',
-      } as any,
+      } as z.ZodIssue,
     ]);
 
     errorHandler(zError, mockRequest as Request, mockResponse as Response, nextFunction);
