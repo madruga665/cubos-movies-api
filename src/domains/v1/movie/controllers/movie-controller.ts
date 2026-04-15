@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
 import logger from '../../../../lib/logger';
-import { createMovieSchema, updateMovieSchema } from '../schemas/movie-schemas';
+import { createMovieSchema, UpdateMovieInput, updateMovieSchema } from '../schemas/movie-schemas';
 import { AppError } from '../../../../lib/errors';
 
 export class MovieController {
@@ -262,16 +262,7 @@ export class MovieController {
 
     try {
       const validatedData = updateMovieSchema.parse(req.body);
-
-      const formattedData: any = { ...validatedData };
-
-      if (validatedData.budget !== undefined) {
-        formattedData.budget = validatedData.budget ? BigInt(validatedData.budget) : null;
-      }
-
-      if (validatedData.revenue !== undefined) {
-        formattedData.revenue = validatedData.revenue ? BigInt(validatedData.revenue) : null;
-      }
+      const formattedData: UpdateMovieInput = { ...validatedData };
 
       const movie = await this.service.updateMovie(id as string, userId, formattedData);
 

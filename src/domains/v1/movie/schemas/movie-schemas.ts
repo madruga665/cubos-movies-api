@@ -14,10 +14,10 @@ export const createMovieSchema = z.object({
   backdropUrl: z.url('URL do backdrop inválida').optional().nullable().or(z.literal('')),
   trailerUrl: z.url('URL do trailer inválida').optional().nullable().or(z.literal('')),
   certification: z.string().optional().nullable(),
-  voteCount: z.number().int().nonnegative().optional().default(0),
-  voteAverage: z.number().min(0).max(10).optional().default(0),
-  budget: z.coerce.string().optional().nullable(),
-  revenue: z.coerce.string().optional().nullable(),
+  voteCount: z.number().int().nonnegative().optional(),
+  voteAverage: z.number().min(0).max(100).optional(),
+  budget: z.coerce.bigint().optional().nullable(),
+  revenue: z.coerce.bigint().optional().nullable(),
 });
 
 export const updateMovieSchema = createMovieSchema.partial();
