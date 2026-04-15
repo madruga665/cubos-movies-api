@@ -3,9 +3,9 @@ import LokiTransport from 'winston-loki';
 
 const logger = winston.createLogger({
   format: winston.format.combine(
+    winston.format.timestamp(),
     winston.format.errors({ stack: true }), // Garante que pilhas de erro sejam capturadas
     winston.format.metadata(), // Move campos extras para um campo metadata
-    winston.format.json(),
   ),
   transports: [
     new LokiTransport({
