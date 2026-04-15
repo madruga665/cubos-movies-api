@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { auth } from '../lib/auth';
 import { prisma } from '../lib/prisma';
-// import logger from '../lib/logger';
+import logger from '../lib/logger';
 import { fromNodeHeaders } from 'better-auth/node';
 import { User, Session } from '../types/auth';
 
@@ -14,7 +14,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     // 2. Fallback: Verificação manual no Banco de Dados se o Better Auth falhar
     if (!session || !session.user) {
-      // logger.warn('Iniciando verificação manual via middleware', { session });
+      logger.warn('Iniciando verificação manual via middleware', { session });
       const authHeader = req.headers.authorization;
       let token = authHeader?.startsWith('Bearer ') ? (authHeader as string).substring(7) : null;
 
@@ -42,7 +42,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     }
 
     if (!session || !session.user) {
-      // logger.warn('Falha na autenticação via middleware', { session });
+      logger.warn('Falha na autenticação via middleware', { session });
       res.status(401).json({ message: 'Não autorizado. Sessão inválida ou expirada.' });
       return;
     }
@@ -52,7 +52,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     next();
   } catch (error) {
-    // logger.error('Erro no authMiddleware', { error });
+    logger.error('Erro no authMiddleware', { error });
     res.status(500).json({ message: 'Erro interno na autenticação.', error });
   }
 };
