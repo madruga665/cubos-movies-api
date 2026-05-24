@@ -118,11 +118,22 @@ O projeto utiliza um **Middleware de Erro Centralizado** (`src/middlewares/error
   import { AppError } from '../../../lib/errors';
   
   if (!movie) {
-    throw new AppError('Filme não encontrado.', 404);
+    throw new AppError('Movie not found.', 404);
   }
   ```
 - **Erros de Validação:** Erros de schema do **Zod** são capturados automaticamente e retornados com o status `400` e a lista detalhada de campos inválidos.
-- **Erros Imprevistos (Bugs):** São capturados pelo middleware, logados internamente para debug, e retornam uma mensagem genérica de `500` para o cliente, protegendo detalhes sensíveis da infraestrutura.
+- **Erros Imprevistos (Bugs):** São capturados pelo middleware, logados internamente para debug, e retornam uma mensagem genérica de `500` (Internal Server Error) para o cliente, protegendo detalhes sensíveis da infraestrutura.
+
+### 📊 Observabilidade & Logs Estruturados (Tracing)
+A API conta com um ecossistema de observabilidade premium baseado no **Winston** integrado de forma opcional ao **Grafana Loki**.
+
+* **Rastreabilidade Automática (`AsyncLocalStorage`)**: Cada chamada à API recebe um `requestId` exclusivo (UUID v4) propagado de forma transparente por todas as camadas (controller, service, repository, Winston, Loki) através de armazenamento contextual assíncrono do Node.js, sem a necessidade de passar parâmetros adicionais pela stack.
+* **Correlacionamento de Usuário (`userId` consistente)**: Para indexações ágeis e consistentes no Loki, todos os logs da aplicação possuem obrigatoriamente a propriedade `userId` preenchida:
+  * O **ID do usuário** se estiver autenticado na requisição (ex: `user_clt2`).
+  * **`anonymous`** para requisições de rotas públicas/não autenticadas.
+  * **`system`** para logs disparados fora do escopo de requisições HTTP (ex: inicialização do servidor).
+* **Logs HTTP e Latência Automáticos**: O middleware central de logs registra automaticamente a entrada e a saída de cada chamada, com latência precisa em milissegundos (`hrtime`) e o nível de severidade adequado de acordo com o status HTTP (ex: logs `error` para erros 500, `warn` para erros 4xx, `info` para 2xx/3xx).
+* **Auditing Logs Estratégicos**: Logs redundantes foram eliminados em caminhos de sucesso para evitar poluição (I/O) no banco de dados. Logs de auditoria específicos e estruturados são mantidos em ações mutativas da aplicação (cadastros, atualizações, soft deletes e ativação de onboarding).
 
 ### Injeção de Dependência
 As camadas de **Controller**, **Service** e **Repository** utilizam Injeção de Dependência via construtores, facilitando a criação de mocks para testes unitários isolados.

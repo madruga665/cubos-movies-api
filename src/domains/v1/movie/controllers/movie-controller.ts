@@ -65,22 +65,13 @@ export class MovieController {
    *         description: Erro interno do servidor
    */
   listUserMovies = async (req: Request, res: Response, next: NextFunction) => {
-    logger.info('Iniciando MovieController.listUserMovies', {
-      userId: req.user?.id,
-      query: req.query,
-    });
-
     try {
       const userId = req.user.id;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const title = req.query.title as string | undefined;
 
-      logger.info('Chamando MovieService.listUserMovies', { userId, page, limit, title });
-
       const response = await this.service.listUserMovies(userId, page, limit, title);
-
-      logger.info('Requisição concluída com sucesso', { userId, count: response.result.length });
 
       res.status(200).json(response);
     } catch (error) {
@@ -121,17 +112,13 @@ export class MovieController {
     const { id } = req.params;
     const userId = req.user.id;
 
-    logger.info('Iniciando MovieController.getMovieById', { id, userId });
-
     try {
       const movie = await this.service.getMovieById(id as string, userId);
 
       if (!movie) {
-        logger.warn('Filme não encontrado no controller', { id, userId });
-        throw new AppError('Filme não encontrado.', 404);
+        throw new AppError('Movie not found.', 404);
       }
 
-      logger.info('Resposta de filme enviada com sucesso', { id });
       res.status(200).json(movie);
     } catch (error) {
       next(error);
@@ -192,8 +179,6 @@ export class MovieController {
   createMovie = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user.id;
 
-    logger.info('Iniciando MovieController.createMovie', { title: req.body.title, userId });
-
     try {
       // Validação com Zod
       const validatedData = createMovieSchema.parse(req.body);
@@ -211,7 +196,7 @@ export class MovieController {
       };
 
       const movie = await this.service.createMovie(formattedData);
-      logger.info('Filme criado com sucesso no controller', { id: movie.id });
+      logger.info(`Audit: New movie '${movie.title}' successfully registered`, { movieId: movie.id });
       res.status(201).json(movie);
     } catch (error) {
       next(error);
@@ -258,15 +243,13 @@ export class MovieController {
     const { id } = req.params;
     const userId = req.user.id;
 
-    logger.info('Iniciando MovieController.updateMovie', { id, userId });
-
     try {
       const validatedData = updateMovieSchema.parse(req.body);
       const formattedData: UpdateMovieInput = { ...validatedData };
 
       const movie = await this.service.updateMovie(id as string, userId, formattedData);
 
-      logger.info('Filme atualizado com sucesso no controller', { id: movie.id });
+      logger.info(`Audit: Movie '${movie.title}' (ID: ${movie.id}) successfully updated`);
       res.status(200).json(movie);
     } catch (error) {
       next(error);
@@ -298,8 +281,6 @@ export class MovieController {
    */
   getOnboardingStatus = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user.id;
-
-    logger.info('Iniciando MovieController.getOnboardingStatus', { userId });
 
     try {
       const status = await this.service.getOnboardingStatus(userId);
@@ -336,12 +317,10 @@ export class MovieController {
   populateUserMovies = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user.id;
 
-    logger.info('Iniciando MovieController.populateUserMovies', { userId });
-
     try {
       const result = await this.service.populateUserMovies(userId);
 
-      logger.info('Filmes populados com sucesso no controller', { userId, count: result.count });
+      logger.info('Audit: Account successfully populated with recommended movies during onboarding', { count: result.count });
 
       res.status(201).json(result);
     } catch (error) {
@@ -378,12 +357,10 @@ export class MovieController {
     const { id } = req.params;
     const userId = req.user.id;
 
-    logger.info('Iniciando MovieController.deleteMovie', { id, userId });
-
     try {
       await this.service.deleteMovie(id as string, userId);
 
-      logger.info('Filme deletado com sucesso no controller', { id });
+      logger.info('Audit: Movie successfully deleted', { movieId: id });
       res.status(204).send();
     } catch (error) {
       next(error);

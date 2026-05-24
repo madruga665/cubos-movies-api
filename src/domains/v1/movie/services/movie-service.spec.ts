@@ -60,7 +60,7 @@ describe('MovieService', () => {
   });
 
   it('deve lançar erro se userId não for fornecido', async () => {
-    await expect(movieService.listUserMovies('')).rejects.toThrow('UserId é obrigatório');
+    await expect(movieService.listUserMovies('')).rejects.toThrow('UserId is required');
   });
 
   describe('getMovieById', () => {
@@ -84,10 +84,10 @@ describe('MovieService', () => {
 
     it('deve lançar erro se ID ou UserId estiverem ausentes', async () => {
       await expect(movieService.getMovieById('', 'user-1')).rejects.toThrow(
-        'ID e UserId são obrigatórios',
+        'ID and UserId are required',
       );
       await expect(movieService.getMovieById('movie-1', '')).rejects.toThrow(
-        'ID e UserId são obrigatórios',
+        'ID and UserId are required',
       );
     });
   });
@@ -133,7 +133,7 @@ describe('MovieService', () => {
       mockRepository.findById.mockResolvedValue(null);
 
       await expect(movieService.updateMovie('non-existent', 'user-1', {})).rejects.toThrow(
-        'Filme não encontrado.',
+        'Movie not found.',
       );
     });
   });
@@ -156,12 +156,12 @@ describe('MovieService', () => {
       mockRepository.hasUserPopulated.mockResolvedValue(true);
 
       await expect(movieService.populateUserMovies('user-1')).rejects.toThrow(
-        'Sua conta já foi populada com filmes recomendados.',
+        'Your account has already been populated with recommended movies.',
       );
     });
 
     it('deve lançar erro se userId não for fornecido', async () => {
-      await expect(movieService.populateUserMovies('')).rejects.toThrow('UserId é obrigatório');
+      await expect(movieService.populateUserMovies('')).rejects.toThrow('UserId is required');
     });
   });
 
@@ -181,13 +181,13 @@ describe('MovieService', () => {
       mockRepository.findById.mockResolvedValue(null);
 
       await expect(movieService.deleteMovie('non-existent', 'user-1')).rejects.toThrow(
-        'Filme não encontrado.',
+        'Movie not found.',
       );
     });
 
     it('deve lançar erro se ID ou UserId não forem fornecidos', async () => {
       await expect(movieService.deleteMovie('', 'user-1')).rejects.toThrow(
-        'ID e UserId são obrigatórios',
+        'ID and UserId are required',
       );
     });
   });

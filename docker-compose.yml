@@ -26,6 +26,9 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cubos_movies_db}?schema=public
       - BETTER_AUTH_URL=${BETTER_AUTH_URL}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - LOKI_BASE_URL=${LOKI_BASE_URL}
+      - LOKI_USER_ID=${LOKI_USER_ID}
+      - LOKI_TOKEN=${LOKI_TOKEN}
     depends_on:
       db:
         condition: service_healthy

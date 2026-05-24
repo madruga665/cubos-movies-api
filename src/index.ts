@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import 'dotenv/config';
 import { toNodeHandler } from 'better-auth/node';
 import express, { Request, Response } from 'express';
 import { auth } from './lib/auth';
@@ -7,10 +8,14 @@ import { movieRoutes } from './domains/v1/movie/routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 import { errorHandler } from './middlewares/error-handler';
+import { loggingMiddleware } from './middlewares/logging-middleware';
 
 export const app = express();
 
 app.set('trust proxy', 1);
+
+// Middleware global de logs estruturados e correlação de requisições
+app.use(loggingMiddleware);
 
 // Patch para serializar BigInt em JSON
 (BigInt.prototype as any).toJSON = function () {

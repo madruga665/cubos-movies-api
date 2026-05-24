@@ -25,13 +25,13 @@ describe('ErrorHandler Middleware', () => {
   });
 
   it('deve tratar AppError (erro previsto) corretamente', () => {
-    const error = new AppError('Recurso não encontrado', 404);
+    const error = new AppError('Resource not found', 404);
 
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.status).toHaveBeenCalledWith(404);
     expect(mockResponse.json).toHaveBeenCalledWith({
-      message: 'Recurso não encontrado',
+      message: 'Resource not found',
     });
     expect(logger.warn).toHaveBeenCalled();
   });
@@ -52,7 +52,7 @@ describe('ErrorHandler Middleware', () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Erro de validação',
+        message: 'Validation error',
         errors: expect.arrayContaining([
           expect.objectContaining({ path: ['title'], message: 'Required' }),
         ]),
@@ -62,13 +62,13 @@ describe('ErrorHandler Middleware', () => {
   });
 
   it('deve tratar erros genéricos como 500 (Erro Interno)', () => {
-    const error = new Error('Erro de banco de dados');
+    const error = new Error('Database connection failed');
 
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.status).toHaveBeenCalledWith(500);
     expect(mockResponse.json).toHaveBeenCalledWith({
-      message: 'Erro interno do servidor',
+      message: 'Internal server error',
     });
     expect(logger.error).toHaveBeenCalled();
   });

@@ -12,20 +12,13 @@ export class MovieService {
   }
 
   async listUserMovies(userId: string, page: number = 1, limit: number = 10, title?: string) {
-    logger.info('Iniciando MovieService.listUserMovies', { userId, page, limit, title });
-
     if (!userId) {
-      logger.error('Falha na validação do MovieService: userId ausente');
-      throw new Error('UserId é obrigatório');
+      throw new Error('UserId is required');
     }
 
     const skip = (page - 1) * limit;
 
-    logger.info('Buscando filmes no repositório', { skip, limit, title });
-
     const { movies, total } = await this.repository.findByUserId(userId, skip, limit, title);
-
-    logger.info('Filmes recuperados com sucesso', { count: movies.length, total });
 
     return {
       result: movies,
@@ -39,67 +32,49 @@ export class MovieService {
   }
 
   async getMovieById(id: string, userId: string) {
-    logger.info('Iniciando MovieService.getMovieById', { id, userId });
-
     if (!id || !userId) {
-      logger.error('Falha na validação: ID ou UserId ausente');
-      throw new Error('ID e UserId são obrigatórios');
+      throw new Error('ID and UserId are required');
     }
 
     const movie = await this.repository.findById(id, userId);
 
     if (!movie) {
-      logger.warn('Filme não encontrado no serviço', { id, userId });
+      logger.warn('Attempted to access non-existent or unauthorized movie', { movieId: id });
       return null;
     }
 
-    logger.info('Filme recuperado com sucesso no serviço', { id });
     return movie;
   }
 
   async createMovie(data: CreateMovieDTO) {
-    logger.info('Iniciando MovieService.createMovie', { title: data.title, userId: data.userId });
-
-    const movie = await this.repository.create(data);
-
-    logger.info('Filme criado com sucesso no serviço', { id: movie.id });
-    return movie;
+    return this.repository.create(data);
   }
 
   async updateMovie(id: string, userId: string, data: UpdateMovieDTO) {
-    logger.info('Iniciando MovieService.updateMovie', { id, userId });
-
     if (!id || !userId) {
-      logger.error('Falha na validação: ID ou UserId ausente');
-      throw new AppError('ID e UserId são obrigatórios', 400);
+      throw new AppError('ID and UserId are required', 400);
     }
 
     const movie = await this.repository.findById(id, userId);
 
     if (!movie) {
-      logger.warn('Filme não encontrado para atualização', { id, userId });
-      throw new AppError('Filme não encontrado.', 404);
+      logger.warn('Attempted to update non-existent or unauthorized movie', { movieId: id });
+      throw new AppError('Movie not found.', 404);
     }
 
-    const updatedMovie = await this.repository.update(id, userId, data);
-
-    logger.info('Filme atualizado com sucesso no serviço', { id });
-    return updatedMovie;
+    return this.repository.update(id, userId, data);
   }
 
   async populateUserMovies(userId: string) {
-    logger.info('Iniciando MovieService.populateUserMovies', { userId });
-
     if (!userId) {
-      logger.error('Falha na validação: UserId ausente');
-      throw new AppError('UserId é obrigatório', 400);
+      throw new AppError('UserId is required', 400);
     }
 
     const alreadyPopulated = await this.repository.hasUserPopulated(userId);
 
     if (alreadyPopulated) {
-      logger.warn('Tentativa de popular conta já populada', { userId });
-      throw new AppError('Sua conta já foi populada com filmes recomendados.', 400);
+      logger.warn('Denied: Attempted to populate account for a user who already has populated movies');
+      throw new AppError('Your account has already been populated with recommended movies.', 400);
     }
 
     const moviesToCreate = recommendedMovies.map((movie) => ({
@@ -111,45 +86,33 @@ export class MovieService {
 
     await this.repository.markUserAsPopulated(userId);
 
-    logger.info('Filmes recomendados populados com sucesso', { userId, count: result.count });
-
     return result;
   }
 
   async getOnboardingStatus(userId: string) {
-    logger.info('Iniciando MovieService.getOnboardingStatus', { userId });
-
     if (!userId) {
-      logger.error('Falha na validação: UserId ausente');
-      throw new AppError('UserId é obrigatório', 400);
+      throw new AppError('UserId is required', 400);
     }
 
     const usage = await this.repository.getUserFeatureUsage(userId);
 
-    // Retorna o status de todas as campanhas, defaultando para false se o registro não existir
     return {
       isPopulated: usage?.isPopulated || false,
-      // Você pode adicionar outras campanhas aqui no futuro
     };
   }
 
   async deleteMovie(id: string, userId: string) {
-    logger.info('Iniciando MovieService.deleteMovie', { id, userId });
-
     if (!id || !userId) {
-      logger.error('Falha na validação: ID ou UserId ausente');
-      throw new AppError('ID e UserId são obrigatórios', 400);
+      throw new AppError('ID and UserId are required', 400);
     }
 
     const movie = await this.repository.findById(id, userId);
 
     if (!movie) {
-      logger.warn('Filme não encontrado para deleção', { id, userId });
-      throw new AppError('Filme não encontrado.', 404);
+      logger.warn('Attempted to delete non-existent or unauthorized movie', { movieId: id });
+      throw new AppError('Movie not found.', 404);
     }
 
     await this.repository.softDelete(id, userId);
-
-    logger.info('Filme deletado com sucesso no serviço', { id });
   }
 }
