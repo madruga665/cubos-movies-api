@@ -34,12 +34,16 @@ const transports: winston.transport[] = [
 ];
 
 // Só inicializa o Loki se uma URL base estiver explicitamente configurada
-if (process.env.LOKI_BASE_URL) {
-  const hasAuth = process.env.LOKI_USER_ID && process.env.LOKI_TOKEN;
+const lokiBaseUrl = process.env.LOKI_BASE_URL?.trim();
+const lokiUserId = process.env.LOKI_USER_ID?.trim();
+const lokiToken = process.env.LOKI_TOKEN?.trim();
+
+if (lokiBaseUrl) {
+  const hasAuth = lokiUserId && lokiToken;
   transports.push(
     new LokiTransport({
-      host: process.env.LOKI_BASE_URL,
-      basicAuth: hasAuth ? `${process.env.LOKI_USER_ID}:${process.env.LOKI_TOKEN}` : undefined,
+      host: lokiBaseUrl,
+      basicAuth: hasAuth ? `${lokiUserId}:${lokiToken}` : undefined,
       labels: { app: 'cubos-movies-api' },
       json: true,
       replaceTimestamp: true,
@@ -48,7 +52,7 @@ if (process.env.LOKI_BASE_URL) {
         winston.format.timestamp(),
         winston.format.json()
       ),
-      onConnectionError: (err) => console.error('Erro ao conectar ao Loki', err),
+      onConnectionError: (err) => console.error('Error connecting to Loki', err),
     })
   );
 }
