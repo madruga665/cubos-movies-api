@@ -22,10 +22,8 @@ services:
     ports:
       - "5000:5000"
     environment:
-      # Se você quiser usar o banco de dados do container 'db', a URL deve ser:
-      # postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cubos_movies_db}
-      # Caso contrário, ele usará o DATABASE_URL definido no seu .env
-      - DATABASE_URL=${DATABASE_URL}
+      # Ajustado para usar o container 'db' como host na rede interna do Docker
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cubos_movies_db}?schema=public
       - BETTER_AUTH_URL=${BETTER_AUTH_URL}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     depends_on:
