@@ -6,14 +6,17 @@ import logger from '../lib/logger';
 export const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
   // Obtém o Request ID do header (útil se estiver atrás de um load balancer/gateway) ou gera um UUID
   const requestId = (req.headers['x-request-id'] as string) || crypto.randomUUID();
-  
+
   // Define o Request ID na resposta para fins de auditoria no cliente
   res.setHeader('x-request-id', requestId);
+
+  const userId = req.headers['x-user-id'];
 
   const context: RequestContext = {
     requestId,
     method: req.method,
     url: req.originalUrl || req.url,
+    userId: typeof userId === 'string' ? userId : undefined,
   };
 
   const startTime = process.hrtime();

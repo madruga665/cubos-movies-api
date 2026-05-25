@@ -8,14 +8,13 @@ import { movieRoutes } from './domains/v1/movie/routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 import { errorHandler } from './middlewares/error-handler';
-import { loggingMiddleware } from './middlewares/logging-middleware';
+import { pinoHttp } from 'pino-http';
+import logger from '@/lib/logger';
+import { loggingMiddleware } from '@/middlewares/logging-middleware';
 
 export const app = express();
 
 app.set('trust proxy', 1);
-
-// Middleware global de logs estruturados e correlação de requisições
-app.use(loggingMiddleware);
 
 // Patch para serializar BigInt em JSON
 (BigInt.prototype as any).toJSON = function () {
@@ -43,6 +42,8 @@ app.get('/', (req: Request, res: Response) => {
 
 // Middleware de Erro Centralizado
 app.use(errorHandler);
+app.use(pinoHttp({ logger }));
+app.use(loggingMiddleware);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
