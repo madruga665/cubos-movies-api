@@ -1,6 +1,4 @@
 import 'dotenv/config';
-import dayjs from 'dayjs';
-import { getRequestContext } from './async-storage';
 import { pino } from 'pino';
 
 const lokiBaseUrl = process.env.LOKI_BASE_URL?.trim();
@@ -9,17 +7,14 @@ const lokiToken = process.env.LOKI_TOKEN?.trim();
 
 const logger = pino({
   level: 'info',
-  timestamp: () => `,"time":"${dayjs().format('YYYY-MM-DDTHH:mm:ss.SSSZ')}"`,
-  mixin() {
-    // Automatically inject the userId into every log if it exists in the active context
-    const store = getRequestContext();
-    return store && store.userId ? { userId: store.userId } : {};
-  },
   transport: {
     targets: [
       {
         target: 'pino-pretty',
-        options: { colorize: true },
+        options: {
+          colorize: true,
+          translateTime: 'yyyy-mm-dd HH:MM:ss.l o', // Formata a hora de forma legível localmente
+        },
         level: 'debug',
       },
       {
@@ -30,7 +25,7 @@ const logger = pino({
             username: lokiUserId,
             password: lokiToken,
           },
-          labels: { app: 'cubos-movies-api', env: 'production' },
+          labels: { app: 'cubos-movies-api', env: process.env.NODE_ENV || 'development' },
         },
         level: 'info',
       },

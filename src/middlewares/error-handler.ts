@@ -11,9 +11,12 @@ export const errorHandler = (
 ) => {
   // Tratamento de erros do Zod (Validação de Entrada)
   if (error instanceof z.ZodError) {
-    logger.warn('Input validation failed (Zod)', {
-      validationErrors: error.issues.map((e) => ({ path: e.path.join('.'), message: e.message })),
-    });
+    logger.warn(
+      {
+        validationErrors: error.issues.map((e) => ({ path: e.path.join('.'), message: e.message })),
+      },
+      'Input validation failed (Zod)',
+    );
     res.status(400).json({
       message: 'Validation error',
       errors: error.issues.map((e) => ({ path: e.path, message: e.message })),
@@ -23,19 +26,25 @@ export const errorHandler = (
 
   // Tratamento de erros operacionais previstos (AppError)
   if (error instanceof AppError) {
-    logger.warn(`Operational error: ${error.message}`, {
-      statusCode: error.statusCode,
-    });
+    logger.warn(
+      {
+        statusCode: error.statusCode,
+      },
+      `Operational error: ${error.message}`,
+    );
     res.status(error.statusCode).json({ message: error.message });
     return;
   }
 
   // Tratamento de erros imprevistos (500)
-  logger.error('Critical unhandled error detected on server', {
-    errorName: error.name,
-    errorMessage: error.message,
-    stack: error.stack,
-  });
+  logger.error(
+    {
+      errorName: error.name,
+      errorMessage: error.message,
+      stack: error.stack,
+    },
+    'Critical unhandled error detected on server',
+  );
 
   res.status(500).json({ message: 'Internal server error' });
 };

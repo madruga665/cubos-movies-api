@@ -39,7 +39,7 @@ export class MovieService {
     const movie = await this.repository.findById(id, userId);
 
     if (!movie) {
-      logger.warn('Attempted to access non-existent or unauthorized movie', { movieId: id });
+      logger.warn({ movieId: id }, 'Attempted to access non-existent or unauthorized movie');
       return null;
     }
 
@@ -58,7 +58,7 @@ export class MovieService {
     const movie = await this.repository.findById(id, userId);
 
     if (!movie) {
-      logger.warn('Attempted to update non-existent or unauthorized movie', { movieId: id });
+      logger.warn({ movieId: id }, 'Attempted to update non-existent or unauthorized movie');
       throw new AppError('Movie not found.', 404);
     }
 
@@ -73,7 +73,9 @@ export class MovieService {
     const alreadyPopulated = await this.repository.hasUserPopulated(userId);
 
     if (alreadyPopulated) {
-      logger.warn('Denied: Attempted to populate account for a user who already has populated movies');
+      logger.warn(
+        'Denied: Attempted to populate account for a user who already has populated movies',
+      );
       throw new AppError('Your account has already been populated with recommended movies.', 400);
     }
 
@@ -109,7 +111,7 @@ export class MovieService {
     const movie = await this.repository.findById(id, userId);
 
     if (!movie) {
-      logger.warn('Attempted to delete non-existent or unauthorized movie', { movieId: id });
+      logger.warn({ movieId: id }, 'Attempted to delete non-existent or unauthorized movie');
       throw new AppError('Movie not found.', 404);
     }
 

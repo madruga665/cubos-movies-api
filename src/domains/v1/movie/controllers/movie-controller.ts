@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { MovieService } from '../services/movie-service';
-import logger from '../../../../lib/logger';
 import { createMovieSchema, UpdateMovieInput, updateMovieSchema } from '../schemas/movie-schemas';
 import { AppError } from '../../../../lib/errors';
 
@@ -196,7 +195,6 @@ export class MovieController {
       };
 
       const movie = await this.service.createMovie(formattedData);
-      logger.info(`Audit: New movie '${movie.title}' successfully registered`, { movieId: movie.id });
       res.status(201).json(movie);
     } catch (error) {
       next(error);
@@ -246,10 +244,8 @@ export class MovieController {
     try {
       const validatedData = updateMovieSchema.parse(req.body);
       const formattedData: UpdateMovieInput = { ...validatedData };
-
       const movie = await this.service.updateMovie(id as string, userId, formattedData);
 
-      logger.info(`Audit: Movie '${movie.title}' (ID: ${movie.id}) successfully updated`);
       res.status(200).json(movie);
     } catch (error) {
       next(error);
@@ -320,8 +316,6 @@ export class MovieController {
     try {
       const result = await this.service.populateUserMovies(userId);
 
-      logger.info('Audit: Account successfully populated with recommended movies during onboarding', { count: result.count });
-
       res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -360,7 +354,6 @@ export class MovieController {
     try {
       await this.service.deleteMovie(id as string, userId);
 
-      logger.info('Audit: Movie successfully deleted', { movieId: id });
       res.status(204).send();
     } catch (error) {
       next(error);

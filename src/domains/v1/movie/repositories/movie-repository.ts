@@ -43,7 +43,7 @@ export class MovieRepository {
 
       return { movies, total };
     } catch (error) {
-      logger.error('Erro durante consulta ao Prisma no MovieRepository', { error, userId });
+      logger.error({ error, userId }, 'Erro durante consulta ao Prisma no MovieRepository');
       throw error;
     }
   }
@@ -54,7 +54,7 @@ export class MovieRepository {
         where: { id, userId, deleted: false },
       });
     } catch (error) {
-      logger.error('Erro ao buscar filme por ID no MovieRepository', { error, id, userId });
+      logger.error({ error, id, userId }, 'Erro ao buscar filme por ID no MovieRepository');
       throw error;
     }
   }
@@ -65,7 +65,7 @@ export class MovieRepository {
         data,
       });
     } catch (error) {
-      logger.error('Erro ao criar filme no MovieRepository', { error, title: data.title });
+      logger.error({ error, title: data.title }, 'Erro ao criar filme no MovieRepository');
       throw error;
     }
   }
@@ -77,7 +77,7 @@ export class MovieRepository {
         data,
       });
     } catch (error) {
-      logger.error('Erro ao atualizar filme no MovieRepository', { error, id });
+      logger.error({ error, id }, 'Erro ao atualizar filme no MovieRepository');
       throw error;
     }
   }
@@ -88,7 +88,7 @@ export class MovieRepository {
         data,
       });
     } catch (error) {
-      logger.error('Erro ao criar múltiplos filmes no MovieRepository', { error });
+      logger.error({ error }, 'Erro ao criar múltiplos filmes no MovieRepository');
       throw error;
     }
   }
@@ -125,7 +125,7 @@ export class MovieRepository {
         },
       });
     } catch (error) {
-      logger.error('Erro ao realizar soft delete no MovieRepository', { error, id, userId });
+      logger.error({ error, id, userId }, 'Erro ao realizar soft delete no MovieRepository');
       throw error;
     }
   }

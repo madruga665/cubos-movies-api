@@ -12,14 +12,20 @@ async function main() {
     const firstUser = await prisma.user.findFirst();
     if (firstUser) {
       userId = firstUser.id;
-      logger.info('Nenhum ID fornecido via argumento. Usando o primeiro usuário encontrado no banco.', { userId, name: firstUser.name });
+      logger.info(
+        { userId, name: firstUser.name },
+        'Nenhum ID fornecido via argumento. Usando o primeiro usuário encontrado no banco.',
+      );
     }
   }
 
   // Se ainda não tiver ID (banco vazio), cria um usuário de teste padrão
   if (!userId) {
     userId = 'user_default_test_id';
-    logger.info('Nenhum usuário encontrado e nenhum ID fornecido. Criando usuário de teste padrão...', { userId });
+    logger.info(
+      { userId },
+      'Nenhum usuário encontrado e nenhum ID fornecido. Criando usuário de teste padrão...',
+    );
     await prisma.user.upsert({
       where: { id: userId },
       update: {},
@@ -32,12 +38,12 @@ async function main() {
     });
   }
 
-  logger.info('Iniciando processo de população para o usuário', { userId });
+  logger.info({ userId }, 'Iniciando processo de população para o usuário');
   await prisma.movie.deleteMany({
     where: { userId },
   });
 
-  logger.info('Inserindo filmes recomendados', { userId, count: recommendedMovies.length });
+  logger.info({ userId, count: recommendedMovies.length }, 'Inserindo filmes recomendados');
   for (const movie of recommendedMovies) {
     await prisma.movie.create({
       data: {
@@ -47,12 +53,12 @@ async function main() {
     });
   }
 
-  logger.info('Seed concluído com sucesso', { count: recommendedMovies.length });
+  logger.info({ count: recommendedMovies.length }, 'Seed concluído com sucesso');
 }
 
 main()
   .catch((e) => {
-    logger.error('Erro durante a execução do seed', { error: e });
+    logger.error({ error: e }, 'Erro durante a execução do seed');
     process.exit(1);
   })
   .finally(async () => {
