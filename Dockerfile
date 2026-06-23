@@ -46,5 +46,5 @@ COPY --from=builder /app/prisma.config.ts ./
 ENV PORT=5000
 EXPOSE 5000
 
-# Executa as migrações e inicia a aplicação compilada com o Node.js nativo
-CMD npx prisma migrate deploy && node dist/src/index.js
+# Executa as migrações e inicia a aplicação compilada usando node com suporte a tsx para importações sem extensão
+CMD npx prisma migrate deploy && node --import tsx dist/src/index.js
