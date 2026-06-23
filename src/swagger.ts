@@ -1,3 +1,6 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+import swaggerAutogen from 'swagger-autogen';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const options = {
@@ -8,7 +11,7 @@ const options = {
       version: '1.0.0',
       description: 'Documentação da API',
     },
-    servers: [{ url: 'http://localhost:3000' }],
+    servers: [{ url: process.env.API_URL || 'http://localhost:5000' }],
     components: {
       schemas: {
         Movie: {
@@ -46,3 +49,14 @@ const options = {
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
+
+const outputFile = path.resolve(process.cwd(), './swagger.json');
+const endpointsFiles = [path.resolve(process.cwd(), './src/domains/v1/movie/routes.ts')];
+
+const isMain = process.argv[1] && (
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
+);
+
+if (isMain) {
+  swaggerAutogen({ openapi: '3.0.0' })(outputFile, endpointsFiles, options.definition);
+}

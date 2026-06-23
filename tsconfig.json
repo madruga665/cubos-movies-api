@@ -2,16 +2,17 @@
   "compilerOptions": {
     "module": "ESNext",
     "ignoreDeprecations": "6.0",
-    "moduleResolution": "Node",
     "allowImportingTsExtensions": false,
     "resolveJsonModule": true,
     "allowJs": true,
     "noImplicitAny": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "skipLibCheck": true,
+    "outDir": "dist"
   },
-  "include": ["src/**/*", "src/types/**/*.d.ts"]
+  "include": ["src/**/*", "src/types/**/*.d.ts"],
+  "exclude": ["node_modules", "src/generated"]
 }

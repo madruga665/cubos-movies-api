@@ -6,7 +6,7 @@ import { auth } from './lib/auth';
 import cors from 'cors';
 import { movieRoutes } from './domains/v1/movie/routes';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './swagger';
+import swaggerDocument from '../swagger.json';
 import { errorHandler } from './middlewares/error-handler';
 import { requestContextMiddleware } from '@/middlewares/requestContextMiddleware';
 import { authMiddleware } from '@/middlewares/auth-middleware';
@@ -18,7 +18,6 @@ import { authMiddleware } from '@/middlewares/auth-middleware';
 
 export const app = express();
 app.set('trust proxy', 1);
-app.use([authMiddleware, requestContextMiddleware]);
 app.use(express.json());
 app.use(
   cors({
@@ -27,16 +26,19 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
-app.use(errorHandler);
+app.use(requestContextMiddleware);
+
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 
-// Rotas Movies
-app.use('/api/v1/movies', movieRoutes);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Rotas Movies - Protegidas por authMiddleware
+app.use('/api/v1/movies', authMiddleware, movieRoutes);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'API rodando com Express e TS' });
 });
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
