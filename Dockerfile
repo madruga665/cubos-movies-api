@@ -38,7 +38,6 @@ RUN npm install --omit=dev
 
 # Copia o Prisma Client gerado e os arquivos compilados do estágio anterior
 COPY --from=builder /app/src/generated /app/src/generated
-COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
